@@ -30,7 +30,8 @@ class DirectionalLight {
         mat4.lookAt(viewMatrix, this.lightPos, this.focalPoint, this.lightUp)
 
         // Projection transform
-        mat4.perspective(projectionMatrix, 75.0/180*Math.PI, resolution/resolution, 1e-2, 1000)
+        // mat4.perspective(projectionMatrix, 75.0/180*Math.PI, resolution/resolution, 1e-2, 1000)
+        mat4.ortho(projectionMatrix, -100, 100, -100, 100, 1e-3, 1000)
         
         mat4.multiply(lightMVP, projectionMatrix, viewMatrix);
         mat4.multiply(lightMVP, lightMVP, modelMatrix);

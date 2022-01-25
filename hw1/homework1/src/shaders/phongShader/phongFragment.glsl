@@ -20,13 +20,14 @@ varying highp vec3 vNormal;
 #define PCF_NUM_SAMPLES NUM_SAMPLES
 #define NUM_RINGS 10
 
-#define LIGHT_AREA 0.01
+#define LIGHT_AREA 0.02
 #define RESOLUTION 2048.0
 #define NEAR_PLANE 0.0001
 
 #define EPS 1e-3
 #define PI 3.141592653589793
 #define PI2 6.283185307179586
+
 
 uniform sampler2D uShadowMap;
 
@@ -90,17 +91,19 @@ void uniformDiskSamples( const in vec2 randomSeed ) {
 float findBlocker( sampler2D shadowMap,  vec2 uv, float zReceiver ) {
   float sum = 0.0;
   // uniformDiskSamples(vPositionFromLight.xy);
-  float shadow_size = LIGHT_AREA*(zReceiver-NEAR_PLANE)/zReceiver;
+  // float shadow_size = LIGHT_AREA*(zReceiver-NEAR_PLANE)/zReceiver;
+  float shadow_size = LIGHT_AREA;
   float num = 0.0;
   for(int i = 0; i < NUM_SAMPLES; i++) {
     vec2 coord = uv + poissonDisk[i]*shadow_size;
     float depth = unpack(texture2D(shadowMap, coord));
     if(depth+EPS < zReceiver) {
       sum += depth;
+      num+=1.0;
     }
   }
   
-	return sum/float(NUM_SAMPLES);
+	return sum/num;
 }
 
 float PCF(sampler2D shadowMap, vec4 coords, float penumbra) {
@@ -125,7 +128,7 @@ float PCSS(sampler2D shadowMap, vec4 coords){
   float avgdepth = findBlocker(shadowMap, coords.xy, zReceiver);
 
   // STEP 2: penumbra size
-  if(avgdepth < EPS) {
+  if(avgdepth < 2.0*EPS) {
     return 1.0;
   }
   float penumbra = (zReceiver-avgdepth)*LIGHT_AREA/avgdepth;
@@ -133,7 +136,6 @@ float PCSS(sampler2D shadowMap, vec4 coords){
 
   // STEP 3: filtering
   return PCF(shadowMap, coords, penumbra);
-
 }
 
 
